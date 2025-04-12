@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Minimal Radio</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0 20px;
+            background-color: #212121;
+            color: #00ff00;
+            font-family: monospace;
+            display: flex;
+            flex-direction: column;
+            align-items: stretch;
+            height: 100vh;
+            overflow: hidden;
+            font-size: 14px;
+        }
+
+        #main-controls {
+            width: 100%;
+            /* border-bottom: 1px solid #00ff00; */
+            padding: 8px 10px;
+        }
+
+        #main-audio {
+            width: 100%;
+            height: 25px;
+            outline: none;
+            filter: grayscale(1) brightness(1.5) hue-rotate(90deg);
+            display: block;
+        }
+
+        #main-audio::-webkit-media-controls-enclosure {
+            background-color: #111;
+            display: flex;
+            margin: 0;
+        }
+
+        #main-audio::-webkit-media-controls-panel {
+            background-color: #111;
+            display: flex;
+        }
+
+        #main-audio::-webkit-media-controls-play-button,
+        #main-audio::-webkit-media-controls-pause-button,
+        #main-audio::-webkit-media-controls-volume-slider,
+        #main-audio::-webkit-media-controls-mute-button {
+            filter: grayscale(1) brightness(1.5) hue-rotate(90deg);
+            color: #00ff00;
+            display: inline-flex;
+        }
+
+        #main-audio::-webkit-media-controls-current-time-display,
+        #main-audio::-webkit-media-controls-time-remaining-display,
+        #main-audio::-webkit-media-controls-timeline {
+            display: none;
+        }
+
+        .station-dropdown {
+            position: relative;
+            width: 100%;
+        }
+
+        .dropdown-button {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 8px 20px;
+            cursor: pointer;
+            background-color: #111;
+            color: #00ff00;
+            border: none;
+            width: 100%;
+            text-align: left;
+            font-family: monospace;
+            font-size: 14px;
+            outline: none;
+            /* border-top: 1px solid #00ff00; */
+        }
+
+        .dropdown-content {
+            display: none;
+            position: absolute;
+            background-color: #111;
+            min-width: 100%;
+            box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+            z-index: 1;
+        }
+
+        .dropdown-content.show {
+            display: block;
+        }
+
+        .station-item {
+            padding: 8px;
+            border-bottom: 1px solid #222;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .station-item.playing {
+            background-color: #333;
+            color: #00ff00;
+            border: 1px solid #00ff00;
+        }
+
+        .station-title {
+            font-size: 14px;
+            margin-right: 5px;
+            width: 150px;
+            text-align: left;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .dropdown-arrow {
+            font-size: 1.2em;
+        }
+
+        #add-station-form-container {
+            text-align: right;
+            padding: 8px 20px;
+            border-top: 1px solid #00ff00;
+        }
+
+        #add-station-form input[type="text"] {
+            width: calc(50% - 20px);
+            padding: 5px;
+            background-color: #333;
+            color: #00ff00;
+            border: 1px solid #00ff00;
+            outline: none;
+            font-family: monospace;
+            font-size: 14px;
+        }
+
+        #add-station-form input[type="submit"] {
+            width: calc(25% - 20px);
+            padding: 5px;
+            background-color: #333;
+            color: #00ff00;
+            border: 1px solid #00ff00;
+            outline: none;
+            font-family: monospace;
+            font-size: 14px;
+        }
+
+        .delete-station {
+            background: none;
+            border: none;
+            color: #ff4444;
+            cursor: pointer;
+            font-size: 14px;
+            padding: 0;
+            margin: 0;
+            font-family: monospace;
+        }
+
+        .plus-button {
+            background-color: #333;
+            color: #00ff00;
+            border: 1px solid #00ff00;
+            padding: 5px 10px;
+            cursor: pointer;
+            font-family: monospace;
+            font-size: 14px;
+            border-radius: 50%;
+            text-align: center;
+            width: 40px;
+            height: 40px;
+        }
+
+        .form-container {
+            display: none;
+            text-align: right;
+            padding: 10px 20px;
+            border-top: 1px solid #00ff00;
+        }
+    </style>
+</head>
+<body>
+    <div id="main-controls">
+        <audio id="main-audio" controls></audio>
+    </div>
+
+    <div class="station-dropdown">
+        <button class="dropdown-button">
+            Select Station <span class="dropdown-arrow">&#9662;</span>
+        </button>
+        <div class="dropdown-content" id="dropdown-content">
+        </div>
+    </div>
+
+    <div id="add-station-form-container">
+        <button class="plus-button" id="toggle-form">+</button>
+        <div class="form-container" id="add-station-form">
+            <form>
+                <input type="text" id="station-name" placeholder="Station Name">
+                <input type="text" id="station-url" placeholder="Station URL">
+                <input type="submit" value="+">
+            </form>
+        </div>
+    </div>
+
+    <script>
+        const mainAudio = document.getElementById('main-audio');
+        const dropdownButton = document.querySelector('.dropdown-button');
+        const dropdownContent = document.getElementById('dropdown-content');
+        const addStationForm = document.getElementById('add-station-form');
+        const stationNameInput = document.getElementById('station-name');
+        const stationUrlInput = document.getElementById('station-url');
+        const toggleFormButton = document.getElementById('toggle-form');
+        const formContainer = document.getElementById('add-station-form');
+
+        let stations = [];
+        try{
+            stations = JSON.parse(localStorage.getItem('radioStations')) || [
+                { name: 'Radio Paradise', url: 'http://stream-uk1.radioparadise.com/mp3-128' },
+                { name: 'Double J', url: 'http://live-radio01.mediahubaustralia.com/DJDW/aac/' },
+                { name: 'Bendigo Jazz', url: 'http://abm22.com.au:8000/CONTAINER100' }
+            ];
+        }catch(e){
+            console.error("Error reading from local storage:", e);
+            stations = [
+                { name: 'Radio Paradise', url: 'http://stream-uk1.radioparadise.com/mp3-128' },
+                { name: 'Double J', url: 'http://live-radio01.mediahubaustralia.com/DJDW/aac/' },
+                { name: 'Bendigo Jazz', url: 'http://abm22.com.au:8000/CONTAINER100' }
+            ];
+        }
+
+        function renderStations() {
+            try {
+                dropdownContent.innerHTML = '';
+                stations.forEach((station, index) => {
+                    const newStation = document.createElement('div');
+                    newStation.classList.add('station-item');
+                    newStation.dataset.src = station.url;
+                    newStation.innerHTML = `
+                        <span class="station-title">${station.name}</span>
+                        <button class="delete-station" data-index="${index}">X</button>
+                    `;
+                    dropdownContent.appendChild(newStation);
+                });
+
+                if (stations.length > 0 && !document.querySelector('.station-item.playing')) {
+                    const firstStation = dropdownContent.firstChild;
+                    if (firstStation) {
+                        firstStation.click();
+                    }
+                }
+            } catch (e) {
+                console.error("Error rendering stations:", e);
+            }
+        }
+
+        function saveStations() {
+            try {
+                localStorage.setItem('radioStations', JSON.stringify(stations));
+            } catch (e) {
+                console.error("Error saving stations:", e);
+            }
+        }
+
+        dropdownButton.addEventListener('click', () => {
+            dropdownContent.classList.toggle('show');
+        });
+
+        window.addEventListener('click', (event) => {
+            if (!event.target.closest('.dropdown-button')) {
+                dropdownContent.classList.remove('show');
+            }
+        });
+
+        dropdownContent.addEventListener('click', (event) => {
+            try {
+                if (event.target.classList.contains('station-item')) {
+                    Array.from(dropdownContent.children).forEach(el => el.classList.remove('playing'));
+                    event.target.classList.add('playing');
+                    mainAudio.src = event.target.dataset.src;
+                    mainAudio.play();
+                    dropdownContent.classList.remove('show');
+                    dropdownButton.textContent = event.target.querySelector('.station-title').textContent + " ";
+                    dropdownButton.innerHTML += '<span class="dropdown-arrow">&#9662;</span>';
+                } else if (event.target.classList.contains('delete-station')) {
+                    const index = parseInt(event.target.dataset.index);
+                    stations.splice(index, 1);
+                    saveStations();
+                    renderStations();
+                }
+            } catch (e) {
+                console.error("Error handling dropdown click:", e);
+            }
+        });
+
+        addStationForm.addEventListener('submit', (event) => {
+            event.preventDefault();
+            const name = stationNameInput.value.trim();
+            const url = stationUrlInput.value.trim();
+            if (name && url) {
+                stations.push({ name, url });
+                saveStations();
+                renderStations();
+                stationNameInput.value = '';
+                stationUrlInput.value = '';
+                formContainer.style.display = 'none';
+                toggleFormButton.textContent = '+';
+            }
+        });
+
+        toggleFormButton.addEventListener('click', () => {
+            if (formContainer.style.display === 'none') {
+                formContainer.style.display = 'block';
+                toggleFormButton.textContent = '-';
+            } else {
+                formContainer.style.display = 'none';
+                toggleFormButton.textContent = '+';
+            }
+        });
+
+        renderStations();
+    </script>
+</body>
+</html>

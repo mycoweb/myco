@@ -1,0 +1,751 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Mycelium Matrixes: Observation Log</title>
+    <style>
+        body {
+            background-color: #000;
+            color: #00ff00;
+            font-family: monospace;
+            margin: 0;
+            padding: 20px;
+            line-height: 1.6;
+        }
+
+        h1,
+        h2,
+        h3 {
+            color: #00ff00;
+            border-bottom: 1px solid #00ff00;
+            padding-bottom: 5px;
+        }
+
+        h3 {
+            border-bottom: none;
+            padding-bottom: 0;
+            margin-top: 15px;
+        }
+
+        .panels-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .panel {
+            border: 1px solid #00ff00;
+            padding: 15px;
+            border-radius: 10px;
+            overflow: auto;
+        }
+
+        .panel h2 {
+            border-bottom: 1px solid #00ff00;
+            padding-bottom: 5px;
+            margin-top: 0;
+        }
+
+        .panel h4 {
+            margin-top: 0;
+            color: #00ff00;
+        }
+
+        .panel img,
+        .panel video {
+            max-width: 100%;
+            height: auto;
+            margin: 10px 0;
+            cursor: pointer; /* Indicate image is clickable */
+        }
+
+        #live-feed {
+            width: 100%;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        #live-feed video {
+            flex-grow: 1;
+            min-width: 45%;
+        }
+
+        a {
+            color: #00ff00;
+            text-decoration: none;
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+
+        .random-image-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 10px;
+            justify-items: center;
+        }
+
+        .random-image-container img,
+        .random-image-container video {
+            max-width: 100%;
+            height: auto;
+            border-radius: 8px;
+            cursor: pointer; /* Indicate image is clickable */
+        }
+
+        #journal-container {
+            display: none;
+        }
+
+        #journal-input {
+            width: 95%;
+            background-color: #222;
+            color: #00cc00;
+            border: 1px solid #00cc00;
+            padding: 8px;
+            box-sizing: border-box;
+            resize: vertical;
+            border-radius: 5px;
+            overflow: auto;
+            min-height: 60px;
+        }
+
+        #journal-input:focus {
+            outline: 1px solid #00cc00;
+        }
+
+        #journal-input::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        #journal-input::-webkit-scrollbar-track {
+            background: #222;
+        }
+
+        #journal-input::-webkit-scrollbar-thumb {
+            background: #444;
+            border-radius: 4px;
+        }
+
+        #journal-input::-webkit-scrollbar-thumb:hover {
+            background: #555;
+        }
+
+        #button-container {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 10px;
+        }
+
+        button {
+            background-color: #333;
+            color: #00cc00;
+            border: 1px solid #00cc00;
+            padding: 8px 16px;
+            cursor: pointer;
+            border-radius: 5px;
+            font-size: 0.9em;
+            font-family: monospace;
+        }
+
+        #intro-line {
+            display: flex;
+            align-items: center;
+            font-size: 0.9em;
+            opacity: 0.7;
+            margin-bottom: 10px;
+            white-space: nowrap;
+        }
+
+        #braille-container {
+            display: flex;
+            margin-left: 10px;
+            margin-right: 10px;
+        }
+
+        .braille-dot {
+            width: 4px;
+            height: 4px;
+            border-radius: 50%;
+            background-color: #00ff00;
+            margin: 2px;
+            opacity: 0.5;
+            animation: braille-blink 1s infinite alternate;
+        }
+
+        @keyframes braille-blink {
+            from {
+                opacity: 0.5;
+            }
+
+            to {
+                opacity: 1;
+            }
+        }
+
+        .braille-dot:nth-child(even) {
+            animation-delay: 0.5s;
+        }
+
+        .log-entry {
+            position: relative;
+            margin-bottom: 10px;
+            word-wrap: break-word;
+        }
+
+        .log-entry h3 {
+            border-bottom: 1px dotted #00ff00;
+            padding-bottom: 3px;
+            font-size: 1.1em;
+            margin-bottom: 5px;
+        }
+
+        .log-entry ul {
+            list-style-type: disc;
+            padding-left: 20px;
+            margin-left: 0;
+            margin-top: 5px;
+        }
+
+        .log-entry li {
+            margin-bottom: 3px;
+        }
+
+        .delete-note {
+            position: absolute;
+            top: 0;
+            right: 0;
+            background: none;
+            border: none;
+            color: #f00;
+            cursor: pointer;
+            font-size: 1.1em;
+            padding: 0 5px;
+            line-height: 1;
+        }
+
+        #experiment-1 {
+            margin-top: 20px;
+            border-top: 1px solid #00ff00;
+            padding-top: 15px;
+        }
+
+        #experiment-1 h3 {
+            border-bottom: 1px solid #00ff00;
+            padding-bottom: 5px;
+        }
+
+        #experiment-1 h4 {
+            color: #00ff00;
+            margin-top: 10px;
+            margin-bottom: 5px;
+        }
+
+        #experiment-1 video {
+            max-width: 80%;
+            height: auto;
+            display: block;
+            margin: 10px auto;
+            border: 1px solid #00ff00;
+            border-radius: 5px;
+        }
+
+        #experiment-1 .subsection {
+            margin-left: 20px;
+        }
+
+        #experiment-1 ul {
+            list-style-type: disc;
+            padding-left: 25px;
+        }
+
+        #experiment-1 li {
+            margin-bottom: 5px;
+        }
+
+        #project-summary {
+            margin-top: 20px;
+            border-top: 1px solid #00ff00;
+            padding-top: 15px;
+        }
+
+        #project-summary h3 {
+            border-bottom: 1px solid #00ff00;
+            padding-bottom: 5px;
+        }
+
+        #project-data {
+            margin-top: 20px;
+            border-top: 1px solid #00ff00;
+            padding-top: 15px;
+        }
+
+        #project-data h2 {
+            border-bottom: 1px solid #00ff00;
+            padding-bottom: 5px;
+        }
+
+        #links-section h3 {
+            border-bottom: 1px solid #00ff00;
+            padding-bottom: 5px;
+        }
+
+        #links-section ol {
+            padding-left: 25px;
+            list-style-type: decimal;
+        }
+
+        #links-section li {
+            margin-bottom: 8px;
+        }
+
+        #admin-link {
+            display: block;
+            margin-top: 20px;
+            text-align: center;
+            font-size: 0.9em;
+            opacity: 0.8;
+        }
+
+        /* Styles for the image enlargement overlay */
+        #image-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.9);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            cursor: pointer; /* Indicate clicking to close */
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease-in-out, visibility 0s linear 0.3s;
+        }
+
+        #image-overlay.show {
+            opacity: 1;
+            visibility: visible;
+            transition: opacity 0.3s ease-in-out, visibility 0s linear 0s;
+        }
+
+        #enlarged-image {
+            max-width: 90%;
+            max-height: 90%;
+            border-radius: 8px;
+            border: 2px solid #00ff00;
+            box-shadow: 0 0 20px rgba(0, 255, 0, 0.5);
+        }
+    </style>
+</head>
+
+<body>
+    <h1>Mycelium Matrixes: Observation Log</h1>
+    <div id="intro-line">
+        <div id="braille-container">
+            <div class="braille-dot"></div>
+            <div class="braille-dot"></div>
+            <div class="braille-dot"></div>
+            <div class="braille-dot"></div>
+            <div class="braille-dot"></div>
+            <div class="braille-dot"></div>
+        </div>
+        M Perrin: 20075004 - V1.2025
+        <div id="braille-container">
+            <div class="braille-dot"></div>
+            <div class="braille-dot"></div>
+            <div class="braille-dot"></div>
+            <div class="braille-dot"></div>
+            <div class="braille-dot"></div>
+            <div class="braille-dot "></div>
+        </div>
+    </div>
+
+    <div class="panels-container">
+        <div class="panel">
+            <h2>Research Images</h2>
+            <div class="random-image-container" id="random-images">
+            </div>
+        </div>
+        <div class="panel">
+            <h2>Timelapse Videos</h2>
+            <div id="live-feed">
+            </div>
+        </div>
+
+        <div class="panel" id="observation-notes-panel">
+            <h2>Observation Notes</h2>
+            <div id="latest-entries">
+            </div>
+            <div id="more-entries" style="display: none;">
+            </div>
+            <button id="show-more-button" onclick="toggleEntries()" style="display: none;">>> More</button>
+            <div id="journal-container">
+                <textarea id="journal-input" placeholder="Enter your notes..."></textarea>
+                <div id="button-container">
+                    <button id="add-entry-button" onclick="addEntry()">Add Note</button>
+                </div>
+            </div>
+
+            <p>
+                <button id="update timetable" onclick="addEntry()"><table border="1" cellpadding="0" cellspacing="0" style="font-size: 10px;">
+                    <thead>
+                        <tr>
+                            <th>Timeframe</th>
+                            <th>Tasks</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>March 24</td>
+                            <td>
+                                ● Project Plan Submission.
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>March – April</td>
+                            <td>
+                                ● Refinement of mycelium cultivation techniques and substrate formulations.<br>
+                                ● Continued documentation of growth and decomposition (time-lapse photography).<br>
+                                ● In-depth research and analysis of Anthropocene and eco-art literature.<br>
+                                ● Initial carving and test prints on cultivated mycelium substrates.
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>April – May</td>
+                            <td>
+                                ● Comparative print testing on mycelium and traditional substrates.<br>
+                                ● Development of a structured approach for the Midway Project Draft.<br>
+                                ● Writing and compilation of the Midway Project Draft.
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>May 16</td>
+                            <td>
+                                ● Midway Project Draft Submission.
+                            </td>
+                        </tr>
+                    </tbody>
+                </table></button>
+            </p>
+        </div>
+
+        <div class="panel">
+            <h2>Project Data & Links</h2>
+
+            <div id="project-summary">
+                <h3>Project Summary</h3>
+                <p>
+                    "Mycelium Matrixes: Biogenerative Printmaking" is an arts-based research project that investigates the potential of
+                    mycelium-based materials as a sustainable alternative to traditional printmaking substrates.
+                    Through experimental material development and printmaking trials, it explores the artistic and
+                    environmental implications of integrating mycelium into print-based practices.
+                    More details can be found in the <a href="/img/project-plan.pdf" target="_blank"> [Project Plan]</a>.
+                </p>
+            </div>
+
+            <div id="project-data">
+                <h3>Environmental Data Logs</h3> <p>Temperature: 24°C</p>
+                <p>Humidity: 85%</p>
+                <p>Light Cycle: 8/16</p>
+            </div>
+
+            <div id="experiment-1">
+                <h3>Experiment 1</h3>
+                <h4>Trial substrate mix using "mushroom guys" mix of jarrah sawdust and wood chips with pulped paper and
+                    cardboard flour and calcium carbonate.</h4>
+                <video controls loop muted onclick="this.play()">
+                    <source src="/img/substrate.mp4" type="video/mp4">
+                    Your browser does not support the video tag.
+                </video>
+                <hr>
+                <div class="subsection">
+                    <h4>Key Theorists & Readings</h4>
+                    <ul id="key-theorists">
+                        <li>Donna Haraway: "Staying with the Trouble" (2016), "A Cyborg Manifesto" (1985)</li>
+                        <li>Hal Foster: "An Archival Impulse" (2004)</li>
+                        <li>Karen Barad: ""Meeting the Universe Halfway: Quantum Physics and the Entanglement of Matter and Meaning" (2007) (ongoing)</li>
+                        <li>Lizzie Muller: Speculative Objects (2013) ongoing</li>
+                        TO READ:
+                        <li>Amelia Barikin, Helen Hughes, Fredric Jameson</li>
+                        <li>Stephanie Rosenthal: "the future is here, it's just not evenly distributed" (2016)</li>
+                        <li>Darko Suvin</li>
+                        <li>Giovanni Aloi: "Limits of our Nature" Antennae Journal</li>
+                        <li>Anna L. Tsing: "What We Can Learn From a Mushroom"/"Mushroom at the End of the World" (2015)</li>
+                    </ul>
+                </div>
+                <div class="subsection">
+                    <h4>Artist Research</h4>
+                    <ul id="key-artists">
+                        <li>Phil Ross</li>
+                        <li>Anicka Yi</li>
+                        <li>Geraldine Javier</li>
+                        <li>Low-Tech Lab</li>
+                        <li>Xiaojing Yan</li>
+                        <li>Patricia Piccinini</li>
+                        <li>Eamon O’Kane</li>
+                        <li>Dasha Plesen</li>
+                        <li>Chris Ritson</li>
+                        <li>Lina Hulsmann</li>
+                        <li>Melissa Roets</li>
+                        <li>Korakrit Arunanondchai (Painting with History)</li>
+                        <li>Georgie Gerrard</li>
+                        <li>Emma Stibbon</li>
+                        <li>Symbiotica</li>
+                        <li>Peter Huyghe</li>
+                        <li>Regine Rapp</li>
+                        <li>Stephen Axford (Timelapse Fungi)</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div id="links-section"> <h3>Links</h3>
+                <ol>
+                    <li><a href="https://undergroundnetwork.com.au/mycology-supplies" target="_blank">Underground Network - Mycology Supplies Store Western Australia</a></li>
+                    <li><a href="https://www.sciencedirect.com/science/article/pii/S0264127519308354" target="_blank">Engineered mycelium composite construction materials from fungal biorefineries</a></li>
+                    <li><a href="https://wiki/Objet_en_myc%C3%A9lium_de_champignon" target="_blank">Low-tech Lab</a></li>
+                    <li><a href="https://www.antennae.org.uk/back-issues-1" target="_blank">Antennae Journal</a></li>
+                    <li><a href="https://ses.library.usyd.edu.au/handle/2123/9628?show=full" target="_blank">Speculative objects: materialising science fiction</a></li>
+                    <li><a href="https://www.thefunguy.com.au/" target="_blank">The FunGuy</a></li>
+                    <li><a href="https://youtu.be/vWkGpbOXZj8?si=MKrP2wjUdXliEscE" target="_blank">Mycelium-Based Composites - Using Fungi as Building Materials [Video]</a></li>
+                </ol>
+            </div>
+        </div>
+    </div>
+
+    <p style="text-align: center; margin-top: 30px;">... End of Log Archive ...</p>
+    <p style="text-align: center;">... mjp 2025 ...</p>
+
+    <a id="admin-link" href="/admin.html">Admin Access</a>
+
+    <div id="image-overlay" onclick="closeEnlargedImage()">
+        <img id="enlarged-image" src="" alt="Enlarged Image">
+    </div>
+
+    <script>
+        const imageOverlay = document.getElementById('image-overlay');
+        const enlargedImage = document.getElementById('enlarged-image');
+
+        function getRandomImages() {
+            const imageNames = Array.from({
+                length: 20 // Assuming max 20 images named 1.jpg to 20.jpg
+            }, (_, i) => `${i + 1}.jpg`);
+            const randomImagesContainer = document.getElementById('random-images');
+            randomImagesContainer.innerHTML = ''; // Clear previous images
+
+            // Shuffle the array to get a random order
+            const shuffledImages = imageNames.sort(() => Math.random() - 0.5);
+
+            // Display all shuffled images and add click listener
+            shuffledImages.forEach(image => {
+                const imagePath = `/img/${image}`; // Ensure path is correct
+                const img = document.createElement('img');
+                img.src = imagePath;
+                img.alt = `Research Image ${image}`; // Add alt text
+                img.onerror = function() { this.style.display='none'; }; // Hide if image fails to load
+                img.onclick = function() { showEnlargedImage(this.src); }; // Add click handler
+                randomImagesContainer.appendChild(img);
+            });
+        }
+
+        async function loadTimelapseVideos() {
+            const videoContainer = document.getElementById('live-feed');
+            videoContainer.innerHTML = '';
+            const numVideosToLoad = 9; // Adjust this number as needed (1.mp4 to 9.mp4)
+
+            for (let i = 1; i <= numVideosToLoad; i++) {
+                const videoName = `${i}.mp4`;
+                const videoPath = `/img/${videoName}`; // Ensure path is correct
+                const video = document.createElement('video');
+                video.controls = true;
+                video.loop = true;
+                video.muted = true;
+                video.preload = 'metadata'; // Load only metadata initially
+                const source = document.createElement('source');
+                source.src = videoPath;
+                source.type = 'video/mp4';
+                video.appendChild(source);
+                video.innerHTML += 'Your browser does not support the video tag.';
+                video.onerror = function() { this.style.display='none'; console.error(`Failed to load video: ${videoPath}`); }; // Hide on error
+                videoContainer.appendChild(video);
+            }
+        }
+
+        function showEnlargedImage(imageSrc) {
+            enlargedImage.src = imageSrc;
+            imageOverlay.classList.add('show');
+        }
+
+        function closeEnlargedImage() {
+            imageOverlay.classList.remove('show');
+            enlargedImage.src = ""; // Clear the source when closing
+        }
+
+        // --- Journal Entry Functions ---
+        const latestEntries = document.getElementById('latest-entries');
+        const moreEntries = document.getElementById('more-entries');
+        const showMoreButton = document.getElementById('show-more-button');
+        let allEntries = []; // Array to hold formatted entry strings
+
+        // Function to safely encode potentially problematic characters for URLs/attributes
+        function safeEncode(str) {
+            return btoa(unescape(encodeURIComponent(str)));
+        }
+
+        // Function to safely decode
+        function safeDecode(str) {
+            try {
+                return decodeURIComponent(escape(atob(str)));
+            } catch (e) {
+                console.error("Error decoding string:", e);
+                return ''; // Return empty string or handle error appropriately
+            }
+        }
+
+
+        function deleteEntry(encodedEntry) {
+            // Decode the entry content first to show a confirmation
+            const entryContentToDelete = safeDecode(encodedEntry);
+            // Optional: Add a confirmation dialog
+            if (!confirm(`Are you sure you want to delete this entry?\n\n"${entryContentToDelete.substring(0, 100)}..."`)) {
+                return; // Stop if user cancels
+            }
+
+            // Proceed with deletion using the original base64 encoded string
+            fetch(`/delete/${encodeURIComponent(encodedEntry)}`, { // Ensure the encoded string is URL-safe
+                method: 'DELETE',
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'OK') {
+                    loadJournalEntries(); // Reload entries after successful deletion
+                } else {
+                    console.error('Error deleting entry:', data.message);
+                    alert(`Error deleting entry: ${data.message}`);
+                }
+            })
+            .catch(error => {
+                console.error('Fetch error during deletion:', error);
+                alert('An error occurred while deleting the entry. Check the console.');
+            });
+        }
+
+        function updateDisplay() {
+            latestEntries.innerHTML = '';
+            moreEntries.innerHTML = '';
+
+            // Display latest 3 entries in 'latestEntries'
+            const latest = allEntries.slice(-3).reverse(); // Show newest first in the latest section
+            latest.forEach(entryHTML => {
+                latestEntries.innerHTML += entryHTML;
+            });
+
+            // Display all entries (newest first) in 'moreEntries'
+            const allReversed = [...allEntries].reverse(); // Show newest first in the "more" section too
+            allReversed.forEach(entryHTML => {
+                moreEntries.innerHTML += entryHTML;
+            });
+
+
+            // Control visibility of "More" button and sections
+            if (allEntries.length > 3) {
+                showMoreButton.style.display = 'block';
+                // Ensure correct initial state when > 3 entries
+                if (moreEntries.style.display !== 'block') { // If "more" is not shown
+                    latestEntries.style.display = 'block'; // Show "latest"
+                    moreEntries.style.display = 'none';     // Hide "more"
+                    showMoreButton.textContent = ">> More (" + (allEntries.length - 3) + ")";
+                } else { // If "more" is shown
+                    latestEntries.style.display = 'none'; // Hide "latest"
+                    showMoreButton.textContent = "<< Less";
+                }
+            } else {
+                showMoreButton.style.display = 'none';
+                latestEntries.style.display = 'block'; // Always show latest if <= 3 entries
+                moreEntries.style.display = 'none';
+            }
+        }
+
+
+        function toggleEntries() {
+            if (moreEntries.style.display === 'none' || moreEntries.style.display === '') {
+                // Show "more", hide "latest"
+                moreEntries.style.display = 'block';
+                latestEntries.style.display = 'none';
+                showMoreButton.textContent = "<< Less";
+            } else {
+                // Hide "more", show "latest"
+                moreEntries.style.display = 'none';
+                latestEntries.style.display = 'block';
+                showMoreButton.textContent = ">> More (" + (allEntries.length - 3) + ")";
+            }
+        }
+
+        function loadJournalEntries() {
+            fetch('/journal.txt?t=' + Date.now()) // Add cache buster
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    return response.text();
+                })
+                .then(text => {
+                    // Normalize line endings and split robustly
+                    const entriesRaw = text.trim().split(/\n?---\s/);
+                    allEntries = []; // Clear existing entries before loading
+
+                    entriesRaw.forEach((entry, index) => {
+                        if (entry.trim() === '' || index === 0) return; // Skip empty entries or potential split artifacts at the beginning
+
+                        const lines = entry.trim().split('\n');
+                        const timestamp = lines[0].replace(/---$/, '').trim(); // Clean up timestamp
+                        const contentLines = lines.slice(1).filter(line => line.trim() !== ''); // Get non-empty content lines
+                        const content = contentLines.join('\n').trim(); // Rejoin content lines
+
+                        if (content === '') return; // Skip entries with only a timestamp
+
+                        const entryNumber = allEntries.length + 1; // Calculate entry number based on valid entries processed
+                        const encodedContentForDelete = safeEncode(content); // Encode content for the delete button
+
+                        // Format content as a list
+                        let formattedContentHTML = '<ul>';
+                        contentLines.forEach(line => {
+                            // Basic formatting: remove leading list markers if present
+                            formattedContentHTML += `<li>${line.replace(/^\s*[-•*+]\s*/, '')}</li>`;
+                        });
+                        formattedContentHTML += '</ul>';
+
+                        // Determine if the delete button should be shown (you'll need a way to identify admin users)
+                        // For now, we'll just hide it. In a real application, you'd check user authentication.
+                        const deleteButtonHTML = ''; // Hide the delete button
+
+                        // Create the HTML for the entry
+                        const formattedEntryHTML = `
+                            <div class="log-entry">
+                                <h3>Entry ${entryNumber}: ${timestamp}</h3>
+                                ${formattedContentHTML}
+                                ${deleteButtonHTML}
+                            </div>`;
+
+                        allEntries.push(formattedEntryHTML);
+                    });
+                    updateDisplay(); // Update the page with the loaded entries
+                })
+                .catch(error => {
+                    console.error("Error loading journal entries:", error);
+                    latestEntries.innerHTML = "<p>Error loading journal entries. See console.</p>"; // Display error to user
+                });
+        }
+
+        // --- Initial Load ---
+        getRandomImages();
+        loadTimelapseVideos();
+        loadJournalEntries(); // Load journal on page start
+
+    </script>
+</body>
+</html>
