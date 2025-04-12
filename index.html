@@ -1,7 +1,8 @@
 <!DOCTYPE html>
-<html>
-
+<html lang="en">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mycelium Matrixes: Observation Log</title>
     <style>
         body {
@@ -13,9 +14,7 @@
             line-height: 1.6;
         }
 
-        h1,
-        h2,
-        h3 {
+        h1, h2, h3 {
             color: #00ff00;
             border-bottom: 1px solid #00ff00;
             padding-bottom: 5px;
@@ -51,12 +50,11 @@
             color: #00ff00;
         }
 
-        .panel img,
-        .panel video {
+        .panel img, .panel video {
             max-width: 100%;
             height: auto;
             margin: 10px 0;
-            cursor: pointer; /* Indicate image is clickable */
+            cursor: pointer;
         }
 
         #live-feed {
@@ -92,7 +90,7 @@
             max-width: 100%;
             height: auto;
             border-radius: 8px;
-            cursor: pointer; /* Indicate image is clickable */
+            cursor: pointer;
         }
 
         #journal-container {
@@ -176,13 +174,8 @@
         }
 
         @keyframes braille-blink {
-            from {
-                opacity: 0.5;
-            }
-
-            to {
-                opacity: 1;
-            }
+            from { opacity: 0.5; }
+            to { opacity: 1; }
         }
 
         .braille-dot:nth-child(even) {
@@ -309,7 +302,6 @@
             opacity: 0.8;
         }
 
-        /* Styles for the image enlargement overlay */
         #image-overlay {
             position: fixed;
             top: 0;
@@ -321,7 +313,7 @@
             justify-content: center;
             align-items: center;
             z-index: 1000;
-            cursor: pointer; /* Indicate clicking to close */
+            cursor: pointer;
             opacity: 0;
             visibility: hidden;
             transition: opacity 0.3s ease-in-out, visibility 0s linear 0.3s;
@@ -342,7 +334,6 @@
         }
     </style>
 </head>
-
 <body>
     <h1>Mycelium Matrixes: Observation Log</h1>
     <div id="intro-line">
@@ -392,45 +383,43 @@
             </div>
 
             <p>
-                <button id="update timetable" onclick="addEntry()"><table border="1" cellpadding="0" cellspacing="0" style="font-size: 10px;">
-                    <thead>
-                        <tr>
-                            <th>Timeframe</th>
-                            <th>Tasks</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td>March 24</td>
-                            <td>
-                                ● Project Plan Submission.
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>March – April</td>
-                            <td>
-                                ● Refinement of mycelium cultivation techniques and substrate formulations.<br>
-                                ● Continued documentation of growth and decomposition (time-lapse photography).<br>
-                                ● In-depth research and analysis of Anthropocene and eco-art literature.<br>
-                                ● Initial carving and test prints on cultivated mycelium substrates.
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>April – May</td>
-                            <td>
-                                ● Comparative print testing on mycelium and traditional substrates.<br>
-                                ● Development of a structured approach for the Midway Project Draft.<br>
-                                ● Writing and compilation of the Midway Project Draft.
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>May 16</td>
-                            <td>
-                                ● Midway Project Draft Submission.
-                            </td>
-                        </tr>
-                    </tbody>
-                </table></button>
+                <button id="update timetable" onclick="addEntry()">
+                    <table border="1" cellpadding="0" cellspacing="0" style="font-size: 10px;">
+                        <thead>
+                            <tr>
+                                <th>Timeframe</th>
+                                <th>Tasks</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>March 24</td>
+                                <td>● Project Plan Submission.</td>
+                            </tr>
+                            <tr>
+                                <td>March – April</td>
+                                <td>
+                                    ● Refinement of mycelium cultivation techniques and substrate formulations.<br>
+                                    ● Continued documentation of growth and decomposition (time-lapse photography).<br>
+                                    ● In-depth research and analysis of Anthropocene and eco-art literature.<br>
+                                    ● Initial carving and test prints on cultivated mycelium substrates.
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>April – May</td>
+                                <td>
+                                    ● Comparative print testing on mycelium and traditional substrates.<br>
+                                    ● Development of a structured approach for the Midway Project Draft.<br>
+                                    ● Writing and compilation of the Midway Project Draft.
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>May 16</td>
+                                <td>● Midway Project Draft Submission.</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </button>
             </p>
         </div>
 
@@ -444,12 +433,13 @@
                     mycelium-based materials as a sustainable alternative to traditional printmaking substrates.
                     Through experimental material development and printmaking trials, it explores the artistic and
                     environmental implications of integrating mycelium into print-based practices.
-                    More details can be found in the <a href="/img/project-plan.pdf" target="_blank"> [Project Plan]</a>.
+                    More details can be found in the <a href="/myco/img/project-plan.pdf" target="_blank"> [Project Plan]</a>.
                 </p>
             </div>
 
             <div id="project-data">
-                <h3>Environmental Data Logs</h3> <p>Temperature: 24°C</p>
+                <h3>Environmental Data Logs</h3>
+                <p>Temperature: 24°C</p>
                 <p>Humidity: 85%</p>
                 <p>Light Cycle: 8/16</p>
             </div>
@@ -459,7 +449,7 @@
                 <h4>Trial substrate mix using "mushroom guys" mix of jarrah sawdust and wood chips with pulped paper and
                     cardboard flour and calcium carbonate.</h4>
                 <video controls loop muted onclick="this.play()">
-                    <source src="/img/substrate.mp4" type="video/mp4">
+                    <source src="/myco/img/substrate.mp4" type="video/mp4">
                     Your browser does not support the video tag.
                 </video>
                 <hr>
@@ -503,11 +493,12 @@
                 </div>
             </div>
 
-            <div id="links-section"> <h3>Links</h3>
+            <div id="links-section">
+                <h3>Links</h3>
                 <ol>
                     <li><a href="https://undergroundnetwork.com.au/mycology-supplies" target="_blank">Underground Network - Mycology Supplies Store Western Australia</a></li>
                     <li><a href="https://www.sciencedirect.com/science/article/pii/S0264127519308354" target="_blank">Engineered mycelium composite construction materials from fungal biorefineries</a></li>
-                    <li><a href="https://wiki/Objet_en_myc%C3%A9lium_de_champignon" target="_blank">Low-tech Lab</a></li>
+<li><a href="https://wiki.lowtechlab.org/wiki/Objet_en_myc%C3%A9lium_de_champignon" target="_blank">Low-tech Lab</a></li>
                     <li><a href="https://www.antennae.org.uk/back-issues-1" target="_blank">Antennae Journal</a></li>
                     <li><a href="https://ses.library.usyd.edu.au/handle/2123/9628?show=full" target="_blank">Speculative objects: materialising science fiction</a></li>
                     <li><a href="https://www.thefunguy.com.au/" target="_blank">The FunGuy</a></li>
@@ -520,7 +511,7 @@
     <p style="text-align: center; margin-top: 30px;">... End of Log Archive ...</p>
     <p style="text-align: center;">... mjp 2025 ...</p>
 
-    <a id="admin-link" href="/admin.html">Admin Access</a>
+    <a id="admin-link" href="/myco/admin.html">Admin Access</a>
 
     <div id="image-overlay" onclick="closeEnlargedImage()">
         <img id="enlarged-image" src="" alt="Enlarged Image">
@@ -542,7 +533,7 @@
 
             // Display all shuffled images and add click listener
             shuffledImages.forEach(image => {
-                const imagePath = `/img/${image}`; // Ensure path is correct
+                const imagePath = `/myco/img/${image}`; // Updated path for GitHub Pages
                 const img = document.createElement('img');
                 img.src = imagePath;
                 img.alt = `Research Image ${image}`; // Add alt text
@@ -559,7 +550,7 @@
 
             for (let i = 1; i <= numVideosToLoad; i++) {
                 const videoName = `${i}.mp4`;
-                const videoPath = `/img/${videoName}`; // Ensure path is correct
+                const videoPath = `/myco/img/${videoName}`; // Updated path for GitHub Pages
                 const video = document.createElement('video');
                 video.controls = true;
                 video.loop = true;
@@ -616,7 +607,9 @@
             }
 
             // Proceed with deletion using the original base64 encoded string
-            fetch(`/delete/${encodeURIComponent(encodedEntry)}`, { // Ensure the encoded string is URL-safe
+            // **WARNING: DELETE functionality to a static file on GitHub Pages won't work.**
+            // This will likely result in a 404 error. You'll need a backend to handle this.
+            fetch(`/myco/delete/${encodeURIComponent(encodedEntry)}`, {
                 method: 'DELETE',
             })
             .then(response => response.json())
@@ -657,7 +650,7 @@
                 // Ensure correct initial state when > 3 entries
                 if (moreEntries.style.display !== 'block') { // If "more" is not shown
                     latestEntries.style.display = 'block'; // Show "latest"
-                    moreEntries.style.display = 'none';     // Hide "more"
+                    moreEntries.style.display = 'none';    // Hide "more"
                     showMoreButton.textContent = ">> More (" + (allEntries.length - 3) + ")";
                 } else { // If "more" is shown
                     latestEntries.style.display = 'none'; // Hide "latest"
@@ -686,7 +679,7 @@
         }
 
         function loadJournalEntries() {
-            fetch('/journal.txt?t=' + Date.now()) // Add cache buster
+            fetch('/myco/journal.txt?t=' + Date.now()) // Updated path for GitHub Pages
                 .then(response => {
                     if (!response.ok) {
                         throw new Error(`HTTP error! status: ${response.status}`);
@@ -719,16 +712,12 @@
                         });
                         formattedContentHTML += '</ul>';
 
-                        // Determine if the delete button should be shown (you'll need a way to identify admin users)
-                        // For now, we'll just hide it. In a real application, you'd check user authentication.
-                        const deleteButtonHTML = ''; // Hide the delete button
-
                         // Create the HTML for the entry
                         const formattedEntryHTML = `
                             <div class="log-entry">
                                 <h3>Entry ${entryNumber}: ${timestamp}</h3>
                                 ${formattedContentHTML}
-                                ${deleteButtonHTML}
+                                <button class="delete-note" title="Delete this note" onclick="deleteEntry('${encodedContentForDelete}')">X</button>
                             </div>`;
 
                         allEntries.push(formattedEntryHTML);
@@ -741,11 +730,53 @@
                 });
         }
 
-        // --- Initial Load ---
+        function addEntry() {
+            const entryText = journalInput.value.trim(); // Use trim()
+            if (entryText === '') return; // Don't add empty entries
+
+            saveJournal(entryText); // Call save function
+            journalInput.value = ''; // Clear the textarea
+            // loadJournalEntries(); // Reload is called within saveJournal's success path now
+        }
+
+        function saveJournal(entryText) {
+            const now = new Date();
+            const timestamp = now.toLocaleString();
+
+            // Prepare the data to send.
+            const dataToSend = `\n--- ${timestamp} ---\n${entryText}\n`;
+
+            // **WARNING: POST functionality to a static file on GitHub Pages won't work.**
+            // This will likely result in a 404 error. You'll need a backend to handle this.
+            fetch('/myco/journal.txt', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'text/plain; charset=utf-8',
+                },
+                body: dataToSend,
+            })
+            .then(response => {
+                if (!response.ok) {
+                    return response.text().then(text => {
+                        throw new Error(`Server error: ${response.status} ${response.statusText}. ${text}`);
+                    });
+                }
+                return response.text();
+            })
+            .then(data => {
+                console.log("Entry added successfully:", data);
+                loadJournalEntries(); // Reload entries to show the new one
+            })
+            .catch(error => {
+                console.error("Error adding entry:", error);
+                alert(`Error adding entry: ${error.message}`);
+            });
+        }
+
+        // --- Initial calls to load data ---
         getRandomImages();
         loadTimelapseVideos();
         loadJournalEntries(); // Load journal on page start
-
     </script>
 </body>
 </html>
