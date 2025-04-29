@@ -524,7 +524,7 @@
 
         function getRandomImages() {
             const imageNames = Array.from({
-                length: 20 // Assuming max 20 images named 1.jpg to 20.jpg
+                length: 40 // Assuming max 20 images named 1.jpg to 40.jpg
             }, (_, i) => `${i + 1}.jpg`);
             const randomImagesContainer = document.getElementById('random-images');
             randomImagesContainer.innerHTML = ''; // Clear previous images
@@ -547,7 +547,7 @@
         async function loadTimelapseVideos() {
             const videoContainer = document.getElementById('live-feed');
             videoContainer.innerHTML = '';
-            const numVideosToLoad = 9; // Adjust this number as needed (1.mp4 to 9.mp4)
+            const numVideosToLoad = 15; // Adjust this number as needed (1.mp4 to 9.mp4)
 
             for (let i = 1; i <= numVideosToLoad; i++) {
                 const videoName = `${i}.mp4`;
