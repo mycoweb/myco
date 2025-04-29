@@ -12,4 +12,4 @@ This website will eventually showcase the various aspects of my research, includ
 
 **Current Status:**
 
-This is a very early stage of the website. The content is currently limited to a basic HTML page (`myco.html`).
+This is a very early stage of the website. The content is currently limited to a basic HTML page
