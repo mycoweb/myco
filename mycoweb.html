@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mycelium Scroller: Whispers from the Abyss</title>
+    <style>
+        /* Basic styling for the body */
+        body { margin: 0; overflow: hidden; background-color: #111; color: #00ff00; font-family: monospace, sans-serif; }
+        /* Title screen styles */
+        #title-screen { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center; }
+        /* Game container (initially hidden) */
+        #game-container { position: absolute; width: 100vw; height: 100vh; display: none; }
+        /* Player styles */
+        #player { position: absolute; display: grid; grid-auto-flow: row dense; }
+        .player-dot { width: 6px; height: 6px; border-radius: 50%; background-color: #00ff00; opacity: 0.7; }
+        .player-dot.blinking { animation: random-blink 1s infinite alternate; }
+        @keyframes random-blink { 0% { opacity: 0.6 + (0.3 * random()); } 100% { opacity: 0.6 + (0.3 * random()); } }
+        /* Path styles */
+        .path-container { position: absolute; top: 80%; left: 0; height: 20%; display: flex; will-change: transform; }
+        .path-segment { display: flex; align-items: center; }
+        .path-dot { width: 3px; height: 3px; border-radius: 50%; background-color: #002000; margin: 1px; }
+        /* Collectible dot styles */
+        .collectible-dot { width: 6px; height: 6px; border-radius: 50%; background-color: #ffff00; opacity: 0.8; animation: pulse 1.5s infinite alternate; }
+        @keyframes pulse { from { opacity: 0.8; transform: scale(1); } to { opacity: 0.9; transform: scale(1.1); } }
+        /* Level complete text styles */
+        #level-complete-text { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); display: grid; gap: 7px; opacity: 0; transition: opacity 1s ease-in-out; }
+        .complete-dot { width: 6px; height: 6px; border-radius: 50%; background-color: #00ff00; }
+        /* Start button styles */
+        button { background-color: #222; color: #00ff00; border: 2px solid #00ff00; padding: 10px 20px; font-family: monospace, sans-serif; font-size: 1em; cursor: pointer; }
+        button:hover { background-color: #444; }
+        /* Dimensional Text */
+        #dimensional-text { position: absolute; top: 10px; left: 10px; color: #f0f; font-size: 0.8em; opacity: 0.7; }
+        /* Assembled Writing */
+        #assembled-writing { position: absolute; top: 30%; left: 50%; transform: translateX(-50%); color: #ccf; font-size: 1.2em; text-align: center; opacity: 0; transition: opacity 1s ease-in-out; }
+        /* Fleeting Faces */
+        .fleeting-face { position: absolute; display: grid; grid-auto-flow: row dense; color: #00ff00; opacity: 0; transition: opacity 2s ease-in-out; pointer-events: none; }
+        .face-dot { width: 6px; height: 6px; border-radius: 50%; background-color: inherit; }
+        .fleeting-face.appearing { opacity: 0.8; }
+    </style>
+</head>
+<body>
+    <div id="title-screen">
+        <h1>MYCELIUM: Whispers from the Abyss</h1>
+        <p>Descend into the Unknowing</p>
+        <button id="start-button">INITIATE DESCENT</button>
+    </div>
+
+    <div id="game-container">
+        <div id="player">
+            <div class="player-dot" style="grid-column: 3; grid-row: 3;"></div>
+        </div>
+        <div id="path-container">
+        </div>
+        <div id="collectibles-container" style="position: absolute; top: 0; left: 0; width: 500vw; height: 100%; pointer-events: none;">
+        </div>
+        <div id="level-complete-text"></div>
+        <div id="dimensional-text"></div>
+        <div id="assembled-writing"></div>
+    </div>
+
+    <script>
+        // DOM element references
+        const titleScreen = document.getElementById('title-screen');
+        const gameContainer = document.getElementById('game-container');
+        const startButton = document.getElementById('start-button');
+        const playerElement = document.getElementById('player');
+        const pathContainer = document.getElementById('path-container');
+        const collectiblesContainer = document.getElementById('collectibles-container');
+        const levelCompleteTextElement = document.getElementById('level-complete-text');
+        const dimensionalTextElement = document.getElementById('dimensional-text');
+        const assembledWritingElement = document.getElementById('assembled-writing');
+
+        // Game parameters
+        const dotSize = 4;
+        const playerDotSize = 8;
+        let playerX = 50;
+        let playerY = 400;
+        let playerSpeed = 2;
+        let pathSpeed = 0.75;
+        let path = [];
+        let collectibles = [];
+        let playerBody = [{ x: 0, y: 0 }];
+        let keysPressed = {};
+        let dotsCollected = 0;
+        let currentLevel = 1;
+        let dotsToWin = 1000; // Increased significantly for the writing reveal and to stop the level
+        let levelComplete = false;
+        let playerGridSize = { cols: 1, rows: 1 };
+        let completeTextGrid = [];
+        const completionText = "ASCENSION";
+        const textGridConfig = {
+            A: [[1,0],[0,1],[0,2],[1,2],[2,1],[2,0]],
+            S: [[2,0],[1,0],[0,1],[1,2],[2,3],[1,3],[0,2]],
+            C: [[2,0],[1,0],[0,1],[0,2],[1,3],[2,3]],
+            E: [[0,0],[0,1],[0,2],[0,3],[1,0],[1,2],[2,0],[2,1],[2,2],[2,3]],
+            N: [[0,0],[0,1],[0,2],[0,3],[1,1],[2,0],[2,1],[2,2],[2,3]],
+            I: [[1,0],[1,1],[1,2],[1,3],[0,0],[2,0],[0,3],[2,3]],
+            O: [[1,0],[0,1],[0,2],[1,3],[2,2],[2,1],[1,0]],
+            N2: [[0,0],[0,1],[0,2],[0,3],[1,1],[2,0],[2,1],[2,2],[2,3]],
+        };
+        const letterSpacing = 4;
+        let textGridOffset = { x: 0, y: 0 };
+        let hasGrownThisFrame = false;
+        const initialCollectibles = 20; // Even more initial collectibles
+        let collectibleSpawnInterval = 1000; // Very frequent spawning
+        let lastCollectibleSpawnTime = 0;
+        const collectibleSpeed = 1; // Adjust speed as needed
+        const pathSegmentLength = 50; // Number of dots per path segment
+        const numPathSegments = 50; // Initial number of path segments
+        let pathPosition = 0; // Tracks the current position of the path
+        const textUpdateInterval = 2000; // Slightly slower text update
+        let lastTextUpdateTime = 0;
+        let writingAssembled = false;
+        const assembledMessage = "FROM BEYOND THE VEIL, A THOUGHT DRIFTS: EXISTENCE IS BUT A FLEETING ECHO IN THE COSMIC WIND.";
+        let lastFaceSpawnTime = 0;
+        const faceSpawnInterval = 5000; // Spawn a face every 5 seconds (adjust as needed)
+
+        const dimensionalSayings = [
+            "The shadows hold ancient secrets...",
+            "Feel the pulse of unseen dimensions...",
+            "Glimpses of impossible geometries...",
+            "The air crackles with forgotten energies...",
+            "Listen to the silence between stars...",
+            "The void whispers of infinite possibilities...",
+            "Trace the lines of transdimensional flux...",
+            "Reality is a fragile consensus...",
+            "Embrace the beautiful uncertainty...",
+        ];
+
+        const facePatterns = [
+            [[1, 0], [0, 1], [2, 1], [1, 2]], // Simple eyes and mouth
+            [[0, 0], [2, 0], [1, 1], [0, 2], [2, 2]], // Another variation
+            [[0, 1], [2, 1], [1, 2]], // Just eyes and a hint
+            [[1, 0], [0, 1], [2, 1]], // One eye and a suggestion
+        ];
+
+        function getRandomDimensionalSaying() {
+            return dimensionalSayings[Math.floor(Math.random() * dimensionalSayings.length)];
+        }
+
+        function getRandomFacePattern() {
+            return facePatterns[Math.floor(Math.random() * facePatterns.length)];
+        }
+
+        function createDot(className, size = dotSize - 2) {
+            const dot = document.createElement('div');
+            dot.className = className;
+            dot.style.width = size + 'px';
+            dot.style.height = size + 'px';
+            dot.style.borderRadius = '50%';
+            return dot;
+        }
+
+        function spawnFleetingFace() {
+            const faceData = getRandomFacePattern();
+            const faceContainer = document.createElement('div');
+            faceContainer.className = 'fleeting-face';
+            faceContainer.style.left = Math.random() * (gameContainer.offsetWidth - 30) + 'px';
+            faceContainer.style.top = Math.random() * (gameContainer.offsetHeight * 0.7 - 30) + 'px';
+            faceContainer.style.gridTemplateColumns = `repeat(3, ${playerDotSize - 2}px)`;
+            faceContainer.style.gridTemplateRows = `repeat(3, ${playerDotSize - 2}px)`;
+
+            faceData.forEach(coord => {
+                const faceDot = createDot('face-dot', playerDotSize - 2);
+                faceDot.style.gridColumn = coord[0] + 1;
+                faceDot.style.gridRow = coord[1] + 1;
+                faceContainer.appendChild(faceDot);
+            });
+
+            gameContainer.appendChild(faceContainer);
+            // Trigger the fade-in effect after a short delay
+            setTimeout(() => {
+                faceContainer.classList.add('appearing');
+                // Fade out and remove after a longer delay
+                setTimeout(() => {
+                    faceContainer.classList.remove('appearing');
+                    setTimeout(() => {
+                        faceContainer.remove();
+                    }, 2000); // Match the fade-out duration
+                }, 5000); // Duration the face stays visible
+            }, 50);
+        }
+
+        // Update player visual
+        function updatePlayerDisplay() {
+            playerElement.innerHTML = ''; // Clear existing player dots
+            // Calculate the bounding box of the player body to determine grid size
+            const allX = playerBody.map(p => p.x);
+            const allY = playerBody.map(p => p.y);
+            const minX = Math.min(...allX);
+            const maxX = Math.max(...allX);
+            const minY = Math.min(...allY);
+            const maxY = Math.max(...allY);
+            playerGridSize.cols = maxX - minX + 3;
+            playerGridSize.rows = maxY - minY + 3;
+            playerElement.style.gridTemplateColumns = `repeat(${playerGridSize.cols}, ${playerDotSize}px)`;
+            playerElement.style.gridTemplateRows = `repeat(${playerGridSize.rows}, ${playerDotSize}px)`;
+            const offsetX = -minX + 1;
+            const offsetY = -minY + 1;
+
+            // Create and position each dot of the player body
+            playerBody.forEach(part => {
+                const dot = createDot('player-dot', playerDotSize - 2);
+                dot.style.gridColumn = part.x + offsetX;
+                dot.style.gridRow = part.y + offsetY;
+                dot.classList.add('blinking'); // Add blinking class to each dot
+                playerElement.appendChild(dot);
+            });
+        }
+
+        // Initialize the infinite path
+        function initializePath() {
+            pathContainer.innerHTML = '';
+            path = [];
+            for (let i = 0; i < numPathSegments; i++) {
+                const segment = document.createElement('div');
+                segment.className = 'path-segment';
+                for (let j = 0; j < pathSegmentLength; j++) {
+                    const pathDot = createDot('path-dot');
+                    segment.appendChild(pathDot);
+                }
+                segment.style.left = (i * pathSegmentLength * (dotSize + 2)) + 'px';
+                pathContainer.appendChild(segment);
+                path.push({ element: segment, offset: i * pathSegmentLength * (dotSize + 2) });
+            }
+            pathContainer.style.width = (numPathSegments * pathSegmentLength * (dotSize + 2)) + 'px';
+        }
+
+        // Initialize collectibles (spawn a limited number initially with movement)
+        function initializeCollectibles() {
+            for (let i = 0; i < initialCollectibles; i++) {
+                spawnCollectible();
+            }
+            collectiblesContainer.style.width = gameContainer.offsetWidth * 5; // Ensure width for spawning
+        }
+
+        // Function to spawn a single collectible with random initial movement
+        function spawnCollectible() {
+            const collectibleDot = createDot('collectible-dot', playerDotSize - 2);
+            collectibleDot.style.position = 'absolute';
+            collectibleDot.style.left = Math.random() * (gameContainer.offsetWidth * 4) + 'px';
+            collectibleDot.style.top = Math.random() * (gameContainer.offsetHeight * 0.7) + 'px';
+            collectibleDot.style.opacity = 0.8; // Ensure opacity
+            const dx = (Math.random() > 0.5 ? 1 : -1) * collectibleSpeed;
+            const dy = (Math.random() > 0.5 ? 1 : -1) * collectibleSpeed;
+            collectiblesContainer.appendChild(collectibleDot);
+            collectibles.push({ element: collectibleDot, x: parseFloat(collectibleDot.style.left), y: parseFloat(collectibleDot.style.top), dx: dx, dy: dy });
+            console.log("Collectible spawned:", collectibleDot); // Debugging log
+        }
+
+        // Generate level complete text grid
+        function generateCompleteTextGrid() {
+            let currentX = 0;
+            completionText.split('').forEach(letter => {
+                if (textGridConfig[letter]) {
+                    textGridConfig[letter].forEach(coord => {
+                        completeTextGrid.push({ x: coord[0] + currentX, y: coord[1] });
+                    });
+                    currentX += (Math.max(...textGridConfig[letter].map(c => c[0])) + letterSpacing);
+                }
+            });
+            const allX = completeTextGrid.map(c => c.x);
+            const allY = completeTextGrid.map(c => c.y);
+            textGridOffset.x = -Math.floor((Math.max(...allX) - Math.min(...allX) + 1) / 2);
+            textGridOffset.y = -Math.floor((Math.max(...allY) - Math.min(...allY) + 1) / 2);
+            levelCompleteTextElement.style.gridTemplateColumns = `repeat(${Math.max(...allX) - Math.min(...allX) + 1}, ${playerDotSize - 2 + 3}px)`;
+            levelCompleteTextElement.style.gridTemplateRows = `repeat(${Math.max(...allY) - Math.min(...allY) + 1}, ${playerDotSize - 2 + 3}px)`;
+        }
+
+        // Display level complete text
+        function displayCompleteText() {
+            levelCompleteTextElement.innerHTML = '';
+            completeTextGrid.forEach(coord => {
+                const dot = createDot('complete-dot', playerDotSize - 2);
+                dot.style.gridColumn = coord.x + textGridOffset.x + 1;
+                dot.style.gridRow = coord.y + textGridOffset.y + 1;
+                levelCompleteTextElement.appendChild(dot);
+            });
+            levelCompleteTextElement.style.opacity = 1;
+        }
+
+        // Get new attachment position for player growth
+        function getNewAttachmentPosition() {
+            const allPlayerPositions = playerBody.map(p => `${p.x},${p.y}`);
+            const possibleAttachments = [];
+
+            playerBody.forEach(part => {
+                [-1, 1].forEach(offset => {
+                    const hPos = `${part.x + offset},${part.y}`;
+                    const vPos = `${part.x},${part.y + offset}`;
+                    if (!allPlayerPositions.includes(hPos)) possibleAttachments.push({ x: part.x + offset, y: part.y });
+                    if (!allPlayerPositions.includes(vPos)) possibleAttachments.push({ x: part.x, y: part.y + offset });
+                });
+            });
+
+            if (possibleAttachments.length > 0) {
+                const randomIndex = Math.floor(Math.random() * possibleAttachments.length);
+                return possibleAttachments[randomIndex];
+            }
+            return null;
+        }
+
+        // Main game loop
+        function updateGame(timestamp) {
+            let dx = 0;
+            let dy = 0;
+
+            // Update dimensional text
+            if (timestamp - lastTextUpdateTime > textUpdateInterval) {
+                dimensionalTextElement.textContent = getRandomDimensionalSaying();
+                lastTextUpdateTime = timestamp;
+            }
+
+            // Handle player movement
+            if (keysPressed['ArrowLeft']) dx = -playerSpeed;
+            if (keysPressed['ArrowRight']) dx = playerSpeed;
+            if (keysPressed['ArrowUp']) dy = -playerSpeed;
+            if (keysPressed['ArrowDown']) dy = playerSpeed;
+
+            // Update player position
+            playerX += dx;
+            playerY += dy;
+
+            // Keep player in bounds
+            const playerRect = playerElement.getBoundingClientRect();
+            playerX = Math.max(0, Math.min(playerX, gameContainer.offsetWidth - playerRect.width));
+            playerY = Math.max(0, Math.min(playerY, gameContainer.offsetHeight - playerRect.height));
+
+            playerElement.style.left = playerX + 'px';
+            playerElement.style.top = playerY + 'px';
+
+            hasGrownThisFrame = false;
+
+            if (!levelComplete) {
+                // Move path infinitely
+                pathPosition -= pathSpeed;
+                path.forEach(segment => {
+                    segment.element.style.transform = `translateX(${pathPosition % (pathSegmentLength * (dotSize + 2))}px)`;
+                });
+
+                // Spawn new collectibles very frequently
+                const now = Date.now();
+                if (now - lastCollectibleSpawnTime > collectibleSpawnInterval) {
+                    spawnCollectible();
+                    lastCollectibleSpawnTime = now;
+                    // Increase spawn frequency slightly over time
+                    collectibleSpawnInterval = Math.max(100, collectibleSpawnInterval - 10);
+                }
+
+                // Spawn fleeting faces
+                if (now - lastFaceSpawnTime > faceSpawnInterval) {
+                    spawnFleetingFace();
+                    lastFaceSpawnTime = now;
+                }
+
+                // Update collectible positions and check for collision
+                for (let i = collectibles.length - 1; i >= 0; i--) {
+                    const collectible = collectibles[i];
+                    const element = collectible.element;
+
+                    collectible.x += collectible.dx;
+                    collectible.y += collectible.dy;
+
+                    // Bounce off the walls
+                    if (collectible.x < 0 || collectible.x > gameContainer.offsetWidth - parseFloat(element.style.width)) {
+                        collectible.dx *= -1;
+                    }
+                    if (collectible.y < 0 || collectible.y > gameContainer.offsetHeight * 0.8 - parseFloat(element.style.height)) {
+                        collectible.dy *= -1;
+                    }
+
+                    element.style.left = collectible.x + 'px';
+                    element.style.top = collectible.y + 'px';
+
+                    const collectibleRect = element.getBoundingClientRect();
+                    const playerRect = playerElement.getBoundingClientRect();
+                    if (playerRect.left < collectibleRect.right &&
+                        playerRect.right > playerRect.left &&
+                        playerRect.top < collectibleRect.bottom &&
+                        playerRect.bottom > playerRect.top &&
+                        !hasGrownThisFrame) {
+                        const newPosition = getNewAttachmentPosition();
+                        if (newPosition) {
+                            playerBody.push(newPosition);
+                            updatePlayerDisplay();
+                            hasGrownThisFrame = true;
+                        }
+                        element.remove();
+                        collectibles.splice(i, 1);
+                        dotsCollected++;
+                        console.log(`Collected ${dotsCollected} / ${dotsToWin}, Size: ${playerBody.length}`);
+
+                        if (dotsCollected >= dotsToWin) {
+                            levelComplete = true; // Stop the level
+                            displayCompleteText(); // Display the ASCENSION message
+                            console.log("Level complete!");
+                            // Optionally stop spawning collectibles or change game state here
+                        } else if (!writingAssembled) {
+                            assembledWritingElement.textContent = assembledMessage;
+                            assembledWritingElement.style.opacity = 1;
+                            writingAssembled = true;
+                            console.log("The assembled writing appears!");
+                        }
+                        break;
+                    }
+                }
+
+                // Check path collision
+                for (const segment of path) {
+                    const pathRect = segment.element.getBoundingClientRect();
+                    const playerTrueRect = playerElement.getBoundingClientRect(); // Use the actual rendered size
+                    if (playerTrueRect.left < pathRect.right &&
+                        playerTrueRect.right > pathRect.left &&
+                        playerTrueRect.top < pathRect.bottom &&
+                        playerTrueRect.bottom > pathRect.top) {
+                        console.log("Glimpse of the abyss!");
+                        // Game over logic here (for now, just logging)
+                    }
+                }
+            }
+
+            requestAnimationFrame(updateGame);
+        }
+
+        // Start game function
+        function startGame() {
+            titleScreen.style.display = 'none';
+            gameContainer.style.display = 'block';
+            dotsCollected = 0;
+            currentLevel = 1;
+            dotsToWin = 1000; // Set initial target
+            levelComplete = false;
+            playerBody = [{ x: 0, y: 0 }];
+            playerX = 50;
+            playerY = 400;
+            collectiblesContainer.innerHTML = '';
+            collectibles = [];
+            collectibleSpawnInterval = 1000; // Very frequent start
+            lastCollectibleSpawnTime = 0;
+            lastFaceSpawnTime = 0; // Initialize face spawn timer
+            pathContainer.innerHTML = '';
+            pathPosition = 0;
+            initializePath();
+            initializeCollectibles();
+            updatePlayerDisplay();
+            playerElement.style.left = playerX + 'px';
+            playerElement.style.top = playerY + 'px';
+            lastTextUpdateTime = performance.now(); // Initialize text update timer
+            assembledWritingElement.style.opacity = 0;
+            writingAssembled = false;
+            updateGame(performance.now());
+        }
+
+        // Initialize complete text
+        generateCompleteTextGrid();
+        // Start button listener
+        startButton.addEventListener('click', startGame);
+
+        // Random number helper
+        function random() {
+            return Math.random();
+        }
+
+        // Event listeners for key presses
+        document.addEventListener('keydown', (e) => {
+            keysPressed[e.key] = true;
+        });
+
+        document.addEventListener('keyup', (e) => {
+            keysPressed[e.key] = false;
+        });
+    </script>
+</body>
+</html>
