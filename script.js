@@ -79,32 +79,8 @@ function safeDecode(str) {
 
 
 function deleteEntry(encodedEntry) {
-    // Decode the entry content first to show a confirmation
-    const entryContentToDelete = safeDecode(encodedEntry);
-    // Optional: Add a confirmation dialog
-    if (!confirm(`Are you sure you want to delete this entry?\n\n"${entryContentToDelete.substring(0, 100)}..."`)) {
-        return; // Stop if user cancels
-    }
-
-    // Proceed with deletion using the original base64 encoded string
-    // **WARNING: DELETE functionality to a static file on GitHub Pages won't work.**
-    // This will likely result in a 404 error. You'll need a backend to handle this.
-    fetch(`/myco/delete/${encodeURIComponent(encodedEntry)}`, {
-        method: 'DELETE',
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.status === 'OK') {
-            loadJournalEntries(); // Reload entries after successful deletion
-        } else {
-            console.error('Error deleting entry:', data.message);
-            alert(`Error deleting entry: ${data.message}`);
-        }
-    })
-    .catch(error => {
-        console.error('Fetch error during deletion:', error);
-        alert('An error occurred while deleting the entry. Check the console.');
-    });
+    // Removed delete function from public site... for obvious reasons.
+    
 }
 
 function updateDisplay() {
