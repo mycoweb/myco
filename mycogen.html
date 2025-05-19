@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Procedural Mycelium Generator</title>
+<style>
+  body {
+    font-family: monospace;
+    background-color: black;
+    color: #00ff00;
+    margin: 0;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-height: 100vh;
+  }
+  h1, h2 {
+    color: #00ff00;
+  }
+  canvas {
+    background-color: black;
+    margin-bottom: 20px;
+    border: 2px solid #00ff00;
+    border-radius: 15px;
+    max-width: 100%;
+    height: auto;
+  }
+  .controls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 20px;
+    justify-content: center;
+    width: 90%;
+    max-width: 700px;
+  }
+  .controls label {
+    display: inline-block;
+    width: 180px;
+    text-align: right;
+  }
+  .controls input[type="number"] {
+    background-color: #333;
+    color: #00ff00;
+    border: 1px solid #00ff00;
+    padding: 5px;
+    width: 60px;
+    font-family: monospace;
+  }
+  button {
+    background-color: #333;
+    color: #00ff00;
+    border: 1px solid #00ff00;
+    padding: 10px 20px;
+    font-family: monospace;
+    cursor: pointer;
+    margin-bottom: 10px;
+  }
+  button:hover {
+    background-color: #00ff00;
+    color: black;
+  }
+  .info-container {
+    background-color: #111;
+    color: #00ff00;
+    border: 1px solid #00ff00;
+    border-radius: 10px;
+    padding: 10px;
+    margin-top: 15px;
+    width: 90%;
+    max-width: 700px;
+    text-align: left;
+  }
+  .info-container h2 {
+    margin-top: 0;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 1em;
+  }
+  .info-container h2::after {
+    content: '+';
+    font-size: 1em;
+  }
+  .info-container.expanded h2::after {
+    content: '-';
+  }
+  .info-content {
+    padding-top: 5px;
+    overflow: hidden;
+    max-height: 0;
+    transition: max-height 0.3s ease-in-out;
+    font-size: 0.9em;
+  }
+  .info-container.expanded .info-content {
+    max-height: 1000px;
+  }
+  .guide-item {
+    margin-bottom: 8px;
+  }
+</style>
+</head>
+<body>
+  <h1>Mycelium Generator</h1>
+  <canvas id="myCanvas"></canvas>
+  <div class="controls">
+    <label for="initialBranches">Initial Branches:</label>
+    <input type="number" id="initialBranches" value="12">
+    <label for="generations">Generations:</label>
+    <input type="number" id="generations" value="8">
+    <label for="initialBranchLength">Initial Length:</label>
+    <input type="number" id="initialBranchLength" value="30">
+    <label for="angleVariance">Angle Variance:</label>
+    <input type="number" id="angleVariance" value="60">
+    <label for="lengthDecreaseMin">Length Decrease Min:</label>
+    <input type="number" id="lengthDecreaseMin" value="0.5" step="0.01">
+    <label for="lengthDecreaseMax">Length Decrease Max:</label>
+    <input type="number" id="lengthDecreaseMax" value="0.8" step="0.01">
+    <label for="angleChangeProb">Angle Change Prob:</label>
+    <input type="number" id="angleChangeProb" value="0.8" step="0.01">
+    <label for="extraBranchProb">Extra Branch Prob:</label>
+    <input type="number" id="extraBranchProb" value="0.3" step="0.01">
+    <label for="lineWidth">Line Width:</label>
+    <input type="number" id="lineWidth" value="0.8" step="0.1">
+  </div>
+  <button id="generateButton">Generate Mycelium</button>
+  <button id="saveButton">Save Image</button>
+  <div class="info-container" id="guideContainer">
+    <h2>Settings Guide</h2>
+    <div class="info-content">
+      <div class="guide-item">
+        <strong>Initial Branches:</strong> Number of main branches starting from the center.
+      </div>
+      <div class="guide-item">
+        <strong>Generations:</strong> How many times each branch will split.
+      </div>
+      <div class="guide-item">
+        <strong>Initial Length:</strong> Length of the starting branches.
+      </div>
+      <div class="guide-item">
+        <strong>Angle Variance:</strong> Random angle deviation.
+      </div>
+      <div class="guide-item">
+        <strong>Length Decrease Min/Max:</strong> Range for new branch length.
+      </div>
+      <div class="guide-item">
+        <strong>Angle Change Prob:</strong> Probability of angle change.
+      </div>
+      <div class="guide-item">
+        <strong>Extra Branch Prob:</strong> Probability of extra branches.
+      </div>
+      <div class="guide-item">
+        <strong>Line Width:</strong> Thickness of the lines.
+      </div>
+    </div>
+  </div>
+  <div class="info-container" id="explanationContainer">
+    <h2>How it Works</h2>
+    <div class="info-content">
+      <p>Generates mycelium-like patterns using recursion and randomness.</p>
+      <p>Branches radiate from the center, with random length and angle.</p>
+      <p>Each branch can spawn further branches, creating a network.</p>
+    </div>
+  </div>
+  <script>
+    const canvas = document.getElementById('myCanvas');
+    const ctx = canvas.getContext('2d');
+    const generateButton = document.getElementById('generateButton');
+    const saveButton = document.getElementById('saveButton');
+    const guideContainer = document.getElementById('guideContainer');
+    const explanationContainer = document.getElementById('explanationContainer');
+
+    function resizeCanvas() {
+      canvas.width = 640;
+      canvas.height = 480;
+    }
+
+    resizeCanvas();
+
+    function drawMycelium() {
+      const centerX = canvas.width / 2;
+      const centerY = canvas.height / 2;
+      const initialBranches = parseInt(document.getElementById('initialBranches').value);
+      const generations = parseInt(document.getElementById('generations').value);
+      const initialBranchLength = parseInt(document.getElementById('initialBranchLength').value);
+      const angleVariance = parseInt(document.getElementById('angleVariance').value);
+      const lengthDecreaseFactorMin = parseFloat(document.getElementById('lengthDecreaseMin').value);
+      const lengthDecreaseFactorMax = parseFloat(document.getElementById('lengthDecreaseMax').value);
+      const angleChangeProbability = parseFloat(document.getElementById('angleChangeProb').value);
+      const extraBranchProbability = parseFloat(document.getElementById('extraBranchProb').value);
+      const lineWidth = parseFloat(document.getElementById('lineWidth').value);
+      const lineColor = '#00ff00';
+
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      function drawBranch(x, y, length, angle, generation) {
+        if (generation > 0 && length > 0.5) {
+          const endX = x + length * Math.cos(angle * Math.PI / 180);
+          const endY = y + length * Math.sin(angle * Math.PI / 180);
+          ctx.beginPath();
+          ctx.moveTo(x, y);
+          ctx.lineTo(endX, endY);
+          ctx.lineWidth = lineWidth;
+          ctx.strokeStyle = lineColor;
+          ctx.stroke();
+          const newLength = length * (Math.random() * (lengthDecreaseFactorMax - lengthDecreaseFactorMin) + lengthDecreaseFactorMin);
+          if (Math.random() < angleChangeProbability) {
+            const angleChange1 = (Math.random() * angleVariance - angleVariance / 2);
+            drawBranch(endX, endY, newLength, angle + angleChange1, generation - 1);
+            if (Math.random() < extraBranchProbability) {
+              const angleChange2 = (Math.random() * angleVariance - angleVariance / 2);
+              drawBranch(endX, endY, newLength * 0.7, angle + angleChange2, generation - 1);
+            }
+          } else {
+            drawBranch(endX, endY, newLength, angle, generation - 1);
+          }
+        }
+      }
+
+      for (let i = 0; i < initialBranches; i++) {
+        const angle = (i / initialBranches) * 360;
+        drawBranch(centerX, centerY, initialBranchLength, angle, generations);
+      }
+    }
+
+    generateButton.addEventListener('click', drawMycelium);
+
+    function saveCanvas() {
+      const dataURL = canvas.toDataURL('image/png');
+      const a = document.createElement('a');
+      a.href = dataURL;
+      a.download = 'mycelium_pattern_styled.png';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+    }
+
+    saveButton.addEventListener('click', saveCanvas);
+
+    function toggleInfo(container) {
+      container.classList.toggle('expanded');
+    }
+
+    guideContainer.querySelector('h2').addEventListener('click', () => toggleInfo(guideContainer));
+    explanationContainer.querySelector('h2').addEventListener('click', () => toggleInfo(explanationContainer));
+
+    // Initial call after defining functions
+    drawMycelium();
+    toggleInfo(guideContainer);
+    toggleInfo(explanationContainer);
+  </script>
+</body>
+</html>
