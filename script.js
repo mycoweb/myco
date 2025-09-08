@@ -3,20 +3,20 @@ const enlargedImage = document.getElementById('enlarged-image');
 
 function getRandomImages() {
     const imageNames = Array.from({
-        length: 80 // Assuming max 20 images named 1.jpg to 40.jpg
+        length: 80 // Assuming max 20 images named 1.jpg to 80.jpg
     }, (_, i) => `${i + 1}.jpg`);
     const randomImagesContainer = document.getElementById('random-images');
     randomImagesContainer.innerHTML = ''; // Clear previous images
 
-    // Shuffle the array to get a random order
+    // Shuffle the imageNames array to get a random order
     const shuffledImages = imageNames.sort(() => Math.random() - 0.5);
 
     // Display all shuffled images and add click listener
     shuffledImages.forEach(image => {
-        const imagePath = `/myco/img/${image}`; // Updated path for GitHub Pages
+        const imagePath = `/myco/img/${image}`; // GitHub Pages - change to local folder if local
         const img = document.createElement('img');
         img.src = imagePath;
-        img.alt = `Research Image ${image}`; // Add alt text
+        img.alt = `Research Image ${image}`; // Add alt text - need to expand this at some stage
         img.onerror = function() { this.style.display='none'; }; // Hide if image fails to load
         img.onclick = function() { showEnlargedImage(this.src); }; // Add click handler
         randomImagesContainer.appendChild(img);
@@ -26,11 +26,11 @@ function getRandomImages() {
 async function loadTimelapseVideos() {
     const videoContainer = document.getElementById('live-feed');
     videoContainer.innerHTML = '';
-    const numVideosToLoad = 15; // Adjust this number as needed (1.mp4 to 9.mp4)
+    const numVideosToLoad = 15; // Adjust this number as needed (1.mp4 to 15.mp4)
 
     for (let i = 1; i <= numVideosToLoad; i++) {
         const videoName = `${i}.mp4`;
-        const videoPath = `/myco/img/${videoName}`; // Updated path for GitHub Pages
+        const videoPath = `/myco/img/${videoName}`; // GitHub Pages - update to local path is switch back to local
         const video = document.createElement('video');
         video.controls = true;
         video.loop = true;
@@ -79,7 +79,7 @@ function safeDecode(str) {
 
 
 function deleteEntry(encodedEntry) {
-    // Removed delete function from public site... for obvious reasons.
+    // Remember to remove delete function from public site... for obvious reasons. - see admin version.
     
 }
 
@@ -135,7 +135,7 @@ function toggleEntries() {
 }
 
 function loadJournalEntries() {
-    fetch('/myco/journal.txt?t=' + Date.now()) // Updated path for GitHub Pages
+    fetch('/myco/journal.txt?t=' + Date.now()) // path set for GitHub Pages, switch back to local path if local (after project)
         .then(response => {
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
@@ -143,12 +143,12 @@ function loadJournalEntries() {
             return response.text();
         })
         .then(text => {
-            // Normalize line endings and split robustly
+            // Normalize line endings and split them up nicely
             const entriesRaw = text.trim().split(/\n?---\s/);
             allEntries = []; // Clear existing entries before loading
 
             entriesRaw.forEach((entry, index) => {
-                if (entry.trim() === '' || index === 0) return; // Skip empty entries or potential split artifacts at the beginning
+                if (entry.trim() === '' || index === 0) return; // Skip empty entries 
 
                 const lines = entry.trim().split('\n');
                 const timestamp = lines[0].replace(/---$/, '').trim(); // Clean up timestamp
@@ -203,7 +203,7 @@ function saveJournal(entryText) {
     const dataToSend = `\n--- ${timestamp} ---\n${entryText}\n`;
 
     // **WARNING: POST functionality to a static file on GitHub Pages won't work.**
-    // This will likely result in a 404 error. You'll need a backend to handle this.
+    // This will result in a 404 error. Home version uses a backend (waitress & flask) to handle this.
     fetch('/myco/journal.txt', {
         method: 'POST',
         headers: {
