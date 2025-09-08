@@ -1,6 +1,6 @@
 body {
     background-color: #000;
-    color: #0000ff;
+    color: #00ff00;
     font-family: monospace;
     margin: 0;
     padding: 20px;
@@ -9,7 +9,7 @@ body {
 
 h1, h2, h3 {
     color: #00ff00;
-    border-bottom: 1px solid #0000ff;
+    border-bottom: 1px solid #00ff00;
     padding-bottom: 5px;
 }
 
@@ -26,14 +26,14 @@ h3 {
 }
 
 .panel {
-    border: 1px solid #0000ff;
+    border: 1px solid #00ff00;
     padding: 15px;
     border-radius: 10px;
     overflow: auto;
 }
 
 .panel h2 {
-    border-bottom: 1px solid #0000ff;
+    border-bottom: 1px solid #00ff00;
     padding-bottom: 5px;
     margin-top: 0;
 }
@@ -63,7 +63,7 @@ h3 {
 }
 
 a {
-    color: #0000ff;
+    color: #00ff00;
     text-decoration: none;
 }
 
