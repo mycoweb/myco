@@ -3,7 +3,7 @@ const enlargedImage = document.getElementById('enlarged-image');
 
 function getRandomImages() {
     const imageNames = Array.from({
-        length: 80 // Assuming max 20 images named 1.jpg to 80.jpg
+        length: 100 // Assuming max 20 images named 1.jpg to 100.jpg
     }, (_, i) => `${i + 1}.jpg`);
     const randomImagesContainer = document.getElementById('random-images');
     randomImagesContainer.innerHTML = ''; // Clear previous images
